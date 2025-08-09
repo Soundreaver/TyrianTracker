@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(248, 50%, 98%);
+  --foreground: hsl(30, 14%, 28%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(30, 14%, 28%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(30, 14%, 28%);
+  --primary: hsl(42, 79%, 51%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(30, 5%, 90%);
+  --secondary-foreground: hsl(30, 14%, 28%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 13%, 65%);
+  --accent: hsl(210, 40%, 94%);
+  --accent-foreground: hsl(30, 14%, 28%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 13%, 91%);
+  --input: hsl(220, 13%, 91%);
+  --ring: hsl(42, 79%, 51%);
+  --chart-1: hsl(42, 79%, 51%);
+  --chart-2: hsl(173, 58%, 39%);
+  --chart-3: hsl(197, 37%, 24%);
+  --chart-4: hsl(43, 74%, 66%);
+  --chart-5: hsl(27, 87%, 67%);
+  --gw2-gold: hsl(42, 79%, 51%);
+  --gw2-blue: hsl(220, 70%, 31%);
+  --gw2-purple: hsl(261, 83%, 58%);
+  --gw2-light: hsl(248, 50%, 98%);
+  --gw2-dark: hsl(220, 39%, 11%);
+  --text-light: hsl(30, 14%, 28%);
+  --text-dark: hsl(226, 24%, 88%);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(220, 39%, 11%);
+  --foreground: hsl(226, 24%, 88%);
+  --card: hsl(224, 27%, 14%);
+  --card-foreground: hsl(226, 24%, 88%);
+  --popover: hsl(224, 27%, 14%);
+  --popover-foreground: hsl(226, 24%, 88%);
+  --primary: hsl(42, 79%, 51%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(215, 27%, 16%);
+  --secondary-foreground: hsl(226, 24%, 88%);
+  --muted: hsl(215, 27%, 16%);
+  --muted-foreground: hsl(217, 10%, 64%);
+  --accent: hsl(215, 27%, 16%);
+  --accent-foreground: hsl(226, 24%, 88%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(215, 27%, 23%);
+  --input: hsl(215, 27%, 23%);
+  --ring: hsl(42, 79%, 51%);
+  --chart-1: hsl(42, 79%, 51%);
+  --chart-2: hsl(173, 58%, 39%);
+  --chart-3: hsl(197, 37%, 24%);
+  --chart-4: hsl(43, 74%, 66%);
+  --chart-5: hsl(27, 87%, 67%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .gw2-gold {
+    @apply text-gw2-gold;
+  }
+  
+  .bg-gw2-gold {
+    background-color: hsl(var(--gw2-gold));
+  }
+  
+  .bg-gw2-blue {
+    background-color: hsl(var(--gw2-blue));
+  }
+  
+  .bg-gw2-purple {
+    background-color: hsl(var(--gw2-purple));
+  }
+  
+  .bg-gw2-light {
+    background-color: hsl(var(--gw2-light));
+  }
+  
+  .bg-gw2-dark {
+    background-color: hsl(var(--gw2-dark));
+  }
+  
+  .text-gw2-gold {
+    color: hsl(var(--gw2-gold));
+  }
+  
+  .text-gw2-blue {
+    color: hsl(var(--gw2-blue));
+  }
+  
+  .text-gw2-purple {
+    color: hsl(var(--gw2-purple));
+  }
+  
+  .animate-in {
+    animation: slideInFromBottom 0.5s ease-out;
+  }
+  
+  .slide-in-from-bottom-4 {
+    animation: slideInFromBottom 0.5s ease-out;
+  }
+  
+  .duration-500 {
+    animation-duration: 0.5s;
+  }
+  
+  .duration-700 {
+    animation-duration: 0.7s;
+  }
+  
+  .duration-900 {
+    animation-duration: 0.9s;
+  }
+  
+  .duration-1100 {
+    animation-duration: 1.1s;
+  }
+  
+  .duration-1300 {
+    animation-duration: 1.3s;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
