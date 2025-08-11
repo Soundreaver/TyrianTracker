@@ -155,7 +155,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gw2-light dark:bg-gw2-dark transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gw2-dark/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -163,7 +163,7 @@ export default function Dashboard() {
                 <div className="w-8 h-8 bg-gradient-to-br from-gw2-gold to-yellow-600 rounded-lg flex items-center justify-center">
                   <Crown className="text-white" size={16} />
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">GW2 Dashboard</span>
+                <span className="text-xl font-bold text-foreground">GW2 Dashboard</span>
               </div>
             </div>
             
@@ -172,14 +172,14 @@ export default function Dashboard() {
                 variant="outline" 
                 size="sm"
                 onClick={toggleTheme}
-                className="p-2 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-2 text-foreground border-border hover:bg-accent hover:text-accent-foreground"
               >
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               {account && (
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-gw2-purple to-purple-600 rounded-full"></div>
-                  <span className="hidden sm:inline text-sm font-medium text-gray-900 dark:text-white">{account.name}</span>
+                  <span className="hidden sm:inline text-sm font-medium text-foreground">{account.name}</span>
                 </div>
               )}
             </div>
