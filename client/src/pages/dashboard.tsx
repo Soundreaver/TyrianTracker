@@ -155,7 +155,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gw2-light dark:bg-gw2-dark transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/95 dark:bg-card/95 backdrop-blur-lg border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -263,7 +263,7 @@ export default function Dashboard() {
               <Button 
                 onClick={handleValidateKey}
                 disabled={validateKeyMutation.isPending}
-                className="bg-gw2-gold hover:bg-gw2-gold/80 text-white font-medium"
+                className="bg-gw2-gold hover:bg-gw2-gold/80 text-black dark:text-white font-medium"
               >
                 {validateKeyMutation.isPending && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
                 Connect Account
