@@ -8,7 +8,7 @@ import {
   type Material,
   type Activity,
   type AccountWithDetails 
-} from "@shared/schema";
+} from "./schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {

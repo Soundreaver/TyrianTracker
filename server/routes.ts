@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertApiKeySchema } from "@shared/schema";
+import { insertApiKeySchema } from "./schema";
 import { z } from "zod";
+import cors from "cors";
 
 const GW2_API_BASE = "https://api.guildwars2.com/v2";
 
@@ -49,6 +50,17 @@ async function fetchGW2API(endpoint: string, apiKey: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Configure CORS for Vercel frontend
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true
+  }));
+
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
   
   // Validate API key and fetch account data
   app.post("/api/validate-key", async (req, res) => {
