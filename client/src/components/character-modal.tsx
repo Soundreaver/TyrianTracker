@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,19 +32,20 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
     return specs[profession] || "⚔️";
   };
 
-  const getProfessionColor = (profession: string) => {
-    const colors: Record<string, string> = {
-      Guardian: "from-blue-500 to-blue-600",
-      Warrior: "from-red-500 to-red-600",
-      Engineer: "from-orange-500 to-orange-600",
-      Ranger: "from-green-500 to-green-600",
-      Thief: "from-purple-500 to-purple-600",
-      Elementalist: "from-cyan-500 to-cyan-600",
-      Mesmer: "from-pink-500 to-pink-600",
-      Necromancer: "from-gray-500 to-gray-600",
-      Revenant: "from-amber-500 to-amber-600",
+  const getEliteSpecBackground = (profession: string) => {
+    // CSS background images for elite specializations
+    const backgrounds: Record<string, string> = {
+      Guardian: "bg-gradient-to-br from-blue-600/80 to-blue-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"guardian\" x=\"0\" y=\"0\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"%3E%3Ccircle cx=\"10\" cy=\"10\" r=\"3\" fill=\"%23ffffff\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23guardian)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Warrior: "bg-gradient-to-br from-red-600/80 to-red-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"warrior\" x=\"0\" y=\"0\" width=\"15\" height=\"15\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M7.5 0L15 7.5L7.5 15L0 7.5Z\" fill=\"%23ffffff\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23warrior)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Engineer: "bg-gradient-to-br from-orange-600/80 to-orange-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"engineer\" x=\"0\" y=\"0\" width=\"25\" height=\"25\" patternUnits=\"userSpaceOnUse\"%3E%3Crect x=\"5\" y=\"5\" width=\"15\" height=\"15\" fill=\"%23ffffff\" opacity=\"0.05\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23engineer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Ranger: "bg-gradient-to-br from-green-600/80 to-green-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"ranger\" x=\"0\" y=\"0\" width=\"30\" height=\"30\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M15 5L25 15L15 25L5 15Z\" fill=\"%23ffffff\" opacity=\"0.08\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23ranger)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Thief: "bg-gradient-to-br from-purple-600/80 to-purple-900/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"specter\" x=\"0\" y=\"0\" width=\"40\" height=\"40\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M20 0L40 20L20 40L0 20Z\" fill=\"%23ffffff\" opacity=\"0.06\"/%3E%3Cpath d=\"M10 10L30 10L30 30L10 30Z\" fill=\"%23ffffff\" opacity=\"0.03\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23specter)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Elementalist: "bg-gradient-to-br from-cyan-600/80 to-cyan-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"elementalist\" x=\"0\" y=\"0\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"%3E%3Ccircle cx=\"10\" cy=\"10\" r=\"8\" fill=\"none\" stroke=\"%23ffffff\" stroke-width=\"1\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23elementalist)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Mesmer: "bg-gradient-to-br from-pink-600/80 to-pink-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"mesmer\" x=\"0\" y=\"0\" width=\"35\" height=\"35\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M17.5 5L30 17.5L17.5 30L5 17.5Z\" fill=\"%23ffffff\" opacity=\"0.07\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23mesmer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Necromancer: "bg-gradient-to-br from-gray-600/80 to-gray-900/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"necromancer\" x=\"0\" y=\"0\" width=\"25\" height=\"25\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M12.5 2.5L22.5 12.5L12.5 22.5L2.5 12.5Z\" fill=\"%23ffffff\" opacity=\"0.05\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23necromancer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+      Revenant: "bg-gradient-to-br from-amber-600/80 to-amber-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"revenant\" x=\"0\" y=\"0\" width=\"30\" height=\"30\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M15 0L30 15L15 30L0 15Z\" fill=\"%23ffffff\" opacity=\"0.08\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23revenant)\"/%3E%3C/svg%3E')] bg-blend-overlay",
     };
-    return colors[profession] || "from-gray-500 to-gray-600";
+    return backgrounds[profession] || "bg-gradient-to-br from-gray-600/80 to-gray-800/80";
   };
 
   return (
@@ -52,11 +53,15 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center space-x-4">
-            <div className={`w-16 h-16 bg-gradient-to-r ${getProfessionColor(character.profession || "")} rounded-lg flex items-center justify-center text-2xl`}>
-              {getEliteSpecIcon(character.profession || "")}
+            <div className={`w-16 h-16 ${getEliteSpecBackground(character.profession || "")} rounded-lg flex items-center justify-center text-2xl relative overflow-hidden`}>
+              <div className="absolute inset-0 bg-black/30"></div>
+              <span className="relative text-white drop-shadow-lg">{getEliteSpecIcon(character.profession || "")}</span>
             </div>
             <div>
               <DialogTitle className="text-2xl">{character.name}</DialogTitle>
+              <DialogDescription className="sr-only">
+                Character details for {character.name}, a level {character.level} {character.profession}
+              </DialogDescription>
               <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="secondary">{character.profession}</Badge>
                 <Badge variant="outline">{character.race} {character.gender}</Badge>
@@ -145,17 +150,42 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-6 gap-4">
-                  {/* Equipment slots - placeholder for now */}
-                  {Array.from({ length: 18 }).map((_, index) => (
-                    <div key={index} className="aspect-square border-2 border-dashed border-muted rounded-lg flex items-center justify-center">
-                      <div className="w-8 h-8 bg-muted rounded"></div>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {/* Equipment slots with actual names */}
+                  {[
+                    { name: "Helmet", slot: "Helm" },
+                    { name: "Shoulders", slot: "Shoulders" },
+                    { name: "Coat", slot: "Coat" },
+                    { name: "Gloves", slot: "Gloves" },
+                    { name: "Leggings", slot: "Leggings" },
+                    { name: "Boots", slot: "Boots" },
+                    { name: "Main Hand", slot: "WeaponA1" },
+                    { name: "Off Hand", slot: "WeaponA2" },
+                    { name: "Aquatic", slot: "WeaponAquaticA" },
+                    { name: "Alt Main", slot: "WeaponB1" },
+                    { name: "Alt Off", slot: "WeaponB2" },
+                    { name: "Alt Aquatic", slot: "WeaponAquaticB" },
+                    { name: "Back Item", slot: "Backpack" },
+                    { name: "Accessory 1", slot: "Accessory1" },
+                    { name: "Accessory 2", slot: "Accessory2" },
+                    { name: "Ring 1", slot: "Ring1" },
+                    { name: "Ring 2", slot: "Ring2" },
+                    { name: "Amulet", slot: "Amulet" },
+                  ].map((item, index) => (
+                    <div key={index} className="flex flex-col items-center space-y-2">
+                      <div className="aspect-square w-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center relative bg-gradient-to-br from-amber-500/20 to-amber-600/20 hover:border-amber-500 transition-colors">
+                        <Shield className="h-6 w-6 text-amber-600" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg"></div>
+                      </div>
+                      <span className="text-xs text-center text-muted-foreground">{item.name}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Equipment data will be loaded when available from the API
-                </p>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Equipment details require character API endpoint with gear inventory permission
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -165,28 +195,48 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Zap className="mr-2 h-4 w-4" />
-                  Inventory
+                  Inventory ({character.name})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Bag slots - placeholder for now */}
-                  {Array.from({ length: 4 }).map((_, bagIndex) => (
-                    <div key={bagIndex} className="border rounded-lg p-4">
-                      <div className="text-sm font-medium mb-3">Bag {bagIndex + 1}</div>
-                      <div className="grid grid-cols-8 gap-2">
-                        {Array.from({ length: 20 }).map((_, slotIndex) => (
-                          <div key={slotIndex} className="aspect-square border border-muted rounded flex items-center justify-center">
-                            <div className="w-6 h-6 bg-muted rounded"></div>
+                  {/* Character bags */}
+                  {Array.from({ length: 5 }).map((_, bagIndex) => (
+                    <div key={bagIndex} className="border rounded-lg p-4 bg-gradient-to-r from-muted/30 to-muted/10">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-sm font-medium">
+                          {bagIndex === 0 ? "Starting Bag" : `Bag ${bagIndex}`}
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {bagIndex === 0 ? "4 slots" : "20 slots"}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-10 gap-2">
+                        {Array.from({ length: bagIndex === 0 ? 4 : 20 }).map((_, slotIndex) => (
+                          <div 
+                            key={slotIndex} 
+                            className="aspect-square border border-muted rounded flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:border-gw2-gold transition-colors cursor-pointer relative"
+                          >
+                            {/* Random mock items for demonstration */}
+                            {Math.random() > 0.7 && (
+                              <>
+                                <Package className="h-3 w-3 text-amber-600" />
+                                <span className="absolute bottom-0 right-0 text-xs bg-black/70 text-white px-1 rounded text-[10px]">
+                                  {Math.floor(Math.random() * 99) + 1}
+                                </span>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Inventory data will be loaded when available from the API
-                </p>
+                <div className="text-center p-4 bg-muted/50 rounded-lg mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Character inventory requires individual character API calls with inventory permission
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

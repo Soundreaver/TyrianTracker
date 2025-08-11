@@ -114,12 +114,15 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
                   <Tooltip key={material.id}>
                     <TooltipTrigger>
                       <div className="aspect-square border border-muted rounded-lg p-2 hover:bg-muted/50 transition-colors cursor-pointer relative">
-                        {/* Item placeholder - in real app would be item icon */}
-                        <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 rounded flex items-center justify-center">
-                          {getMaterialIcon(material.category || 0)}
+                        {/* Material item with proper GW2-style styling */}
+                        <div className="w-full h-full bg-gradient-to-br from-amber-400/40 to-amber-600/60 rounded flex items-center justify-center relative border border-amber-500/30">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded"></div>
+                          <div className="relative z-10 text-amber-100 drop-shadow-sm">
+                            {getMaterialIcon(material.category || 0)}
+                          </div>
                         </div>
-                        {/* Stack count */}
-                        <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
+                        {/* Stack count with better styling */}
+                        <div className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded text-[10px] font-bold border border-amber-400/50">
                           {material.count.toLocaleString()}
                         </div>
                       </div>
