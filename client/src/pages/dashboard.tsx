@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CharacterModal } from "@/components/character-modal";
 import { MaterialsTab } from "@/components/materials-tab";
+import { GW2ItemIcon } from "@/components/gw2-item-icon";
 import { 
   Coins, 
   Gem, 
@@ -489,15 +490,14 @@ export default function Dashboard() {
                                 }`}
                               >
                                 {item && (
-                                  <div className="w-full h-full flex items-center justify-center relative bg-gradient-to-br from-amber-400/30 to-amber-600/30 rounded border border-amber-500/50">
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded"></div>
-                                    <Package className="h-5 w-5 text-amber-100 relative z-10 drop-shadow-sm" />
-                                    {(item.count || 0) > 1 && (
-                                      <span className="absolute bottom-0.5 right-0.5 text-xs bg-black/80 text-white px-1 rounded text-[10px] font-bold border border-amber-400/50">
-                                        {item.count}
-                                      </span>
-                                    )}
-                                  </div>
+                                  <GW2ItemIcon
+                                    itemId={item.itemId ?? undefined}
+                                    iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${item.itemId ?? 0}.png`}
+                                    count={item.count ?? undefined}
+                                    rarity="Fine"
+                                    size="md"
+                                    className="w-full h-full"
+                                  />
                                 )}
                               </div>
                             );

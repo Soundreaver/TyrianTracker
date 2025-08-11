@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/loading-skeleton";
 import { Shield, Sword, Heart, Zap, Clock, Calendar, Package, Search, Eye, Crown, Moon, Plus } from "lucide-react";
+import { GW2ItemIcon } from "@/components/gw2-item-icon";
 import type { Character } from "@shared/schema";
 
 interface CharacterModalProps {
@@ -231,22 +232,29 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
                         </Badge>
                       </div>
                       <div className="grid grid-cols-10 gap-2">
-                        {Array.from({ length: bagIndex === 0 ? 4 : 20 }).map((_, slotIndex) => (
-                          <div 
-                            key={slotIndex} 
-                            className="aspect-square border border-muted rounded flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:border-gw2-gold transition-colors cursor-pointer relative"
-                          >
-                            {/* Random mock items for demonstration */}
-                            {Math.random() > 0.7 && (
-                              <>
-                                <Package className="h-3 w-3 text-amber-600" />
-                                <span className="absolute bottom-0 right-0 text-xs bg-black/70 text-white px-1 rounded text-[10px]">
-                                  {Math.floor(Math.random() * 99) + 1}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        ))}
+                        {Array.from({ length: bagIndex === 0 ? 4 : 20 }).map((_, slotIndex) => {
+                          // Sample item IDs for demonstration - would come from API
+                          const sampleItems = [12134, 12138, 12142, 12146, 12159, 12163];
+                          const hasItem = Math.random() > 0.6;
+                          const itemId = hasItem ? sampleItems[slotIndex % sampleItems.length] : null;
+                          
+                          return (
+                            <div 
+                              key={slotIndex} 
+                              className="aspect-square border border-muted rounded flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:border-gw2-gold transition-colors cursor-pointer relative"
+                            >
+                              {itemId && (
+                                <GW2ItemIcon
+                                  itemId={itemId}
+                                  iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${itemId}.png`}
+                                  count={Math.floor(Math.random() * 20) + 1}
+                                  rarity={["Fine", "Masterwork", "Rare"][Math.floor(Math.random() * 3)]}
+                                  size="sm"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

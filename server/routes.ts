@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create or update account
         const account = await storage.createOrUpdateAccount(accountData, apiKey.id);
 
-        // Fetch and save characters
+        // Fetch and save characters with inventory
         const charactersData: GW2Character[] = await fetchGW2API("/characters?page=0", key);
         const characters = charactersData.map(char => ({
           id: Math.random().toString(36),
@@ -91,6 +91,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           accountId: account.id,
         }));
         await storage.saveCharacters(characters, account.id);
+
+        // Fetch character inventories and equipment
+        for (const char of charactersData.slice(0, 5)) { // Limit to first 5 chars to avoid rate limits
+          try {
+            // Get character equipment
+            const equipment = await fetchGW2API(`/characters/${encodeURIComponent(char.name)}/equipment`, key);
+            
+            // Get character inventory (bags)
+            const inventory = await fetchGW2API(`/characters/${encodeURIComponent(char.name)}/inventory`, key);
+            
+            // Store equipment and inventory data (would need to extend schema)
+            console.log(`Fetched equipment and inventory for ${char.name}`);
+          } catch (error) {
+            console.log(`Failed to fetch inventory for ${char.name}:`, error);
+          }
+        }
 
         // Fetch wallet
         try {
@@ -207,6 +223,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Refresh error:", error);
       res.status(500).json({ error: "Failed to refresh account data" });
+    }
+  });
+
+  // Fetch item details with icons from GW2 API
+  app.get("/api/items/:itemId", async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      const apiKey = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (!apiKey) {
+        return res.status(401).json({ error: "API key required" });
+      }
+
+      const itemData = await fetchGW2API(`/items/${itemId}`, apiKey);
+      
+      res.json({
+        id: itemData.id,
+        name: itemData.name,
+        icon: itemData.icon, // This is the full render service URL
+        rarity: itemData.rarity,
+        type: itemData.type,
+        level: itemData.level,
+        description: itemData.description,
+      });
+    } catch (error: any) {
+      console.error("Item fetch error:", error);
+      res.status(400).json({ error: error.message });
     }
   });
 

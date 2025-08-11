@@ -3,6 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Package, Gem, Hammer, Sparkles } from "lucide-react";
+import { GW2ItemIcon } from "@/components/gw2-item-icon";
 import { useState } from "react";
 import type { Material } from "@shared/schema";
 
@@ -113,19 +114,14 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
                 {mats.map((material) => (
                   <Tooltip key={material.id}>
                     <TooltipTrigger>
-                      <div className="aspect-square border border-muted rounded-lg p-2 hover:bg-muted/50 transition-colors cursor-pointer relative">
-                        {/* Material item with proper GW2-style styling */}
-                        <div className="w-full h-full bg-gradient-to-br from-amber-400/40 to-amber-600/60 rounded flex items-center justify-center relative border border-amber-500/30">
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded"></div>
-                          <div className="relative z-10 text-amber-100 drop-shadow-sm">
-                            {getMaterialIcon(material.category || 0)}
-                          </div>
-                        </div>
-                        {/* Stack count with better styling */}
-                        <div className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded text-[10px] font-bold border border-amber-400/50">
-                          {material.count.toLocaleString()}
-                        </div>
-                      </div>
+                      <GW2ItemIcon
+                        itemId={material.itemId}
+                        iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${material.itemId}.png`}
+                        count={material.count}
+                        rarity={getMaterialRarity(material.itemId)}
+                        size="lg"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
                       <div className="space-y-2">
