@@ -50,19 +50,19 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
   };
 
   const getProfessionIcon = (profession: string) => {
-    // Professional Lucide icons that match GW2 profession themes
-    const icons: Record<string, any> = {
-      Guardian: Shield,
-      Warrior: Sword,
-      Engineer: Package,
-      Ranger: Search,
-      Thief: Eye,
-      Elementalist: Zap,
-      Mesmer: Crown,
-      Necromancer: Moon,
-      Revenant: Plus,
+    // Official GW2 profession icon URLs from the render service
+    const iconUrls: Record<string, string> = {
+      Guardian: "https://render.guildwars2.com/file/943538394A94A491C8632FBEF6203C2013443555/102478.png",
+      Warrior: "https://render.guildwars2.com/file/4926CE43F614A7D9A83AB9D6D25DF57B61BF4DE5/102451.png", 
+      Engineer: "https://render.guildwars2.com/file/502050C64A7EC7E3C9A4FB0B1F0D9E9F2CF2D73B/102456.png",
+      Ranger: "https://render.guildwars2.com/file/298F3F67EA2D6BFAD3D516F6F5E09EFBA8B66E87/102473.png",
+      Thief: "https://render.guildwars2.com/file/41CF590C6E5DC8F10EDA0D4C11309D1DD25E55E8/102447.png",
+      Elementalist: "https://render.guildwars2.com/file/A7B0C1F982026C7648C32FA50CA8CB4B1EDC64F3/102461.png",
+      Mesmer: "https://render.guildwars2.com/file/E54E7E5C2987B5BA17A5F5AACBB421DFE3F57AC0/102465.png",
+      Necromancer: "https://render.guildwars2.com/file/1F4BAB7CB6299113FE6A6B462C8273B84F61FA67/102469.png",
+      Revenant: "https://render.guildwars2.com/file/0F2FC4F020F7EE9F6E6B80B9CD7C2068FA2CFBF7/103822.png"
     };
-    return icons[profession] || Sword;
+    return iconUrls[profession];
   };
 
   return (
@@ -73,8 +73,16 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
             <div className={`w-16 h-16 bg-gradient-to-br ${getProfessionColor(character.profession || "")} rounded-lg flex items-center justify-center relative overflow-hidden shadow-lg`}>
               <div className="absolute inset-0 bg-black/30"></div>
               {(() => {
-                const IconComponent = getProfessionIcon(character.profession || "");
-                return <IconComponent className="h-8 w-8 text-white relative z-10 drop-shadow-md" />;
+                const iconUrl = getProfessionIcon(character.profession || "");
+                return iconUrl ? (
+                  <img 
+                    src={iconUrl} 
+                    alt={`${character.profession} icon`}
+                    className="h-10 w-10 relative z-10 drop-shadow-md filter brightness-110"
+                  />
+                ) : (
+                  <Shield className="h-8 w-8 text-white relative z-10 drop-shadow-md" />
+                );
               })()}
             </div>
             <div>

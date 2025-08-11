@@ -159,6 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "achievement",
           description: "Achievement completed",
           reward: "50 AP",
+          accountId: account.id,
         }, account.id);
 
         res.json({ 
@@ -249,6 +250,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Item fetch error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Get profession data with icons
+  app.get("/api/professions", async (req, res) => {
+    try {
+      const professionsData = await fetchGW2API("/professions?ids=all", "");
+      res.json(professionsData);
+    } catch (error: any) {
+      console.error("Professions fetch error:", error);
       res.status(400).json({ error: error.message });
     }
   });
