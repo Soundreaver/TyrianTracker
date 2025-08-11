@@ -140,6 +140,36 @@
   .duration-1300 {
     animation-duration: 1.3s;
   }
+
+  /* Better spacing for cards and components */
+  .space-y-8 > * + * {
+    margin-top: 2rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .gap-6 {
+    gap: 1.5rem;
+  }
+  
+  .gap-4 {
+    gap: 1rem;
+  }
+  
+  /* Professional hover effects */
+  .group:hover .group-hover\:scale-105 {
+    transform: scale(1.05);
+  }
+  
+  .transition-all {
+    transition: all 0.2s ease-in-out;
+  }
 }
 
 @keyframes slideInFromBottom {

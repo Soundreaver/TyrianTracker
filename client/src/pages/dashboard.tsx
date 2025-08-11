@@ -11,13 +11,12 @@ import { Skeleton } from "@/components/ui/loading-skeleton";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { CharacterModal } from "@/components/character-modal";
+import { MaterialsTab } from "@/components/materials-tab";
 import { 
-  Shield, 
   Coins, 
   Gem, 
   Trophy, 
-  Users, 
-  Sword, 
   Eye, 
   EyeOff, 
   Moon, 
@@ -29,15 +28,16 @@ import {
   RefreshCw,
   Plus,
   Search,
-  Filter,
-  Sparkles
+  Package
 } from "lucide-react";
-import type { AccountWithDetails } from "@shared/schema";
+import type { AccountWithDetails, Character } from "@shared/schema";
 
 export default function Dashboard() {
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [validatedKey, setValidatedKey] = useState<string | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [isCharacterModalOpen, setIsCharacterModalOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -101,13 +101,13 @@ export default function Dashboard() {
 
   const getGoldValue = () => {
     if (!account?.wallet) return "0";
-    const goldCurrency = account.wallet.find(w => w.currencyId === 1); // GW2 gold currency ID
+    const goldCurrency = account.wallet.find(w => w.currencyId === 1);
     return goldCurrency ? Math.floor(goldCurrency.value / 10000).toLocaleString() : "0";
   };
 
   const getGemsValue = () => {
     if (!account?.wallet) return "0";
-    const gemsCurrency = account.wallet.find(w => w.currencyId === 4); // GW2 gems currency ID
+    const gemsCurrency = account.wallet.find(w => w.currencyId === 4);
     return gemsCurrency ? gemsCurrency.value.toLocaleString() : "0";
   };
 
@@ -126,19 +126,24 @@ export default function Dashboard() {
     return colors[profession] || "from-gray-500 to-gray-600";
   };
 
-  const getProfessionIcon = (profession: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      Guardian: <Shield className="text-white text-xl" />,
-      Warrior: <Sword className="text-white text-xl" />,
-      Engineer: <Sparkles className="text-white text-xl" />,
-      Ranger: <Crown className="text-white text-xl" />,
-      Thief: <Eye className="text-white text-xl" />,
-      Elementalist: <Sparkles className="text-white text-xl" />,
-      Mesmer: <Sparkles className="text-white text-xl" />,
-      Necromancer: <Shield className="text-white text-xl" />,
-      Revenant: <Sword className="text-white text-xl" />,
+  const getEliteSpecIcon = (profession: string) => {
+    const specs: Record<string, string> = {
+      Guardian: "🛡️",
+      Warrior: "⚔️",
+      Engineer: "🔧",
+      Ranger: "🏹",
+      Thief: "🗡️",
+      Elementalist: "⚡",
+      Mesmer: "🔮",
+      Necromancer: "💀",
+      Revenant: "👻",
     };
-    return icons[profession] || <Shield className="text-white text-xl" />;
+    return specs[profession] || "⚔️";
+  };
+
+  const handleCharacterClick = (character: Character) => {
+    setSelectedCharacter(character);
+    setIsCharacterModalOpen(true);
   };
 
   return (
@@ -263,7 +268,7 @@ export default function Dashboard() {
 
         {/* Account Overview */}
         {validatedKey && (
-          <div className="animate-in slide-in-from-bottom-4 duration-700">
+          <div className="animate-in slide-in-from-bottom-4 duration-700 space-y-8">
             {isLoading ? (
               <div className="grid lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
@@ -340,7 +345,7 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                           <span className="text-sm font-medium">Achievement Points</span>
-                          <span className="font-bold">{account.dailyAp + account.monthlyAp}</span>
+                          <span className="font-bold">{(account.dailyAp || 0) + (account.monthlyAp || 0)}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                           <span className="text-sm font-medium">World vs World Rank</span>
@@ -401,141 +406,106 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Characters Section */}
-                <Card className="animate-in slide-in-from-bottom-4 duration-900">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Characters</CardTitle>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Filter className="h-4 w-4 mr-2" />
-                          Filter
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {account.characters.length > 0 ? (
-                      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {account.characters.map((character) => (
-                          <div
-                            key={character.name}
-                            className={`p-4 bg-gradient-to-r ${getProfessionColor(character.profession || "")}/10 rounded-lg border hover:shadow-lg transition-all duration-200 cursor-pointer`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-16 h-16 bg-gradient-to-br ${getProfessionColor(character.profession || "")} rounded-lg flex items-center justify-center`}>
-                                {getProfessionIcon(character.profession || "")}
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold">{character.name}</h3>
-                                <p className="text-sm text-muted-foreground">{character.profession}</p>
-                                <p className="text-xs text-muted-foreground">Level {character.level}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-medium">{Math.floor((character.age || 0) / 3600)}h</p>
-                                <p className="text-xs text-muted-foreground">Played</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No character data available</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Inventory Section */}
-                <div className="grid lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-1100">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle>Bank Storage</CardTitle>
-                      <Badge variant="outline">
-                        {account.bankItems.length}/250 slots
-                      </Badge>
+                {/* Main Content Tabs */}
+                <Card>
+                  <Tabs defaultValue="characters" className="w-full">
+                    <CardHeader>
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="characters">Characters</TabsTrigger>
+                        <TabsTrigger value="storage">Bank Storage</TabsTrigger>
+                        <TabsTrigger value="materials">Materials</TabsTrigger>
+                      </TabsList>
                     </CardHeader>
+
                     <CardContent>
-                      <div className="grid grid-cols-8 gap-2 mb-4">
-                        {Array.from({ length: 32 }).map((_, index) => {
-                          const item = account.bankItems.find(item => item.slot === index);
-                          return (
-                            <div
-                              key={index}
-                              className={`aspect-square rounded border-2 transition-colors cursor-pointer ${
-                                item
-                                  ? "border-gw2-gold bg-gradient-to-br from-gw2-gold/20 to-yellow-600/20 hover:border-gw2-gold/80"
-                                  : "border-border bg-muted hover:border-muted-foreground"
-                              }`}
-                            >
-                              {item && (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <div className="w-6 h-6 bg-gw2-gold rounded flex items-center justify-center">
-                                    <span className="text-xs text-white font-bold">
-                                      {item.count > 1 ? item.count : ""}
-                                    </span>
+                      <TabsContent value="characters" className="space-y-6 mt-0">
+                        {account.characters.length > 0 ? (
+                          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {account.characters.map((character) => (
+                              <div
+                                key={character.name}
+                                onClick={() => handleCharacterClick(character)}
+                                className={`p-4 bg-gradient-to-r ${getProfessionColor(character.profession || "")}/10 rounded-lg border hover:shadow-lg transition-all duration-200 cursor-pointer group`}
+                              >
+                                <div className="flex items-center space-x-4">
+                                  <div className={`w-16 h-16 bg-gradient-to-br ${getProfessionColor(character.profession || "")} rounded-lg flex items-center justify-center text-2xl`}>
+                                    {getEliteSpecIcon(character.profession || "")}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold">{character.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{character.profession}</p>
+                                    <p className="text-xs text-muted-foreground">Level {character.level}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium">{Math.floor((character.age || 0) / 3600)}h</p>
+                                    <p className="text-xs text-muted-foreground">Played</p>
                                   </div>
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button className="flex-1 bg-gw2-gold hover:bg-gw2-gold/80">
-                          <Search className="mr-2 h-4 w-4" />
-                          Search Items
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Material Storage</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {account.materials.length > 0 ? (
-                        <div className="space-y-3">
-                          {account.materials.slice(0, 8).map((material) => (
-                            <div
-                              key={material.id}
-                              className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-gradient-to-br from-gw2-gold to-yellow-600 rounded flex items-center justify-center">
-                                  <span className="text-white text-xs font-bold">M</span>
-                                </div>
-                                <span className="font-medium">Material {material.itemId}</span>
                               </div>
-                              <div className="text-right">
-                                <span className="font-bold">{material.count}</span>
-                                <span className="text-muted-foreground text-sm">/250</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p>No character data available</p>
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="storage" className="space-y-6 mt-0">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">Bank Storage</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {account.bankItems.length}/250 slots used
+                            </p>
+                          </div>
+                          <Badge variant="outline">
+                            {account.bankItems.length} items
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-10 gap-2">
+                          {Array.from({ length: 50 }).map((_, index) => {
+                            const item = account.bankItems.find(item => item.slot === index);
+                            return (
+                              <div
+                                key={index}
+                                className={`aspect-square rounded border-2 transition-colors cursor-pointer ${
+                                  item
+                                    ? "border-gw2-gold bg-gradient-to-br from-gw2-gold/20 to-yellow-600/20 hover:border-gw2-gold/80"
+                                    : "border-border bg-muted hover:border-muted-foreground"
+                                }`}
+                              >
+                                {item && (
+                                  <div className="w-full h-full flex items-center justify-center relative">
+                                    <Package className="h-4 w-4 text-gw2-gold" />
+                                    <span className="absolute bottom-0 right-0 text-xs bg-black/70 text-white px-1 rounded">
+                                      {(item.count || 0) > 1 ? item.count : ""}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p>No material data available</p>
+                        
+                        <div className="flex space-x-2 pt-4">
+                          <Button className="flex-1 bg-gw2-gold hover:bg-gw2-gold/80">
+                            <Search className="mr-2 h-4 w-4" />
+                            Search Items
+                          </Button>
                         </div>
-                      )}
-                      
-                      <div className="mt-6 pt-4 border-t">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Storage Usage</span>
-                          <span className="font-medium">{account.materials.length} items</span>
-                        </div>
-                        <Progress value={Math.min((account.materials.length / 100) * 100, 100)} className="h-2" />
-                      </div>
+                      </TabsContent>
+
+                      <TabsContent value="materials" className="mt-0">
+                        <MaterialsTab materials={account.materials} />
+                      </TabsContent>
                     </CardContent>
-                  </Card>
-                </div>
+                  </Tabs>
+                </Card>
 
                 {/* Recent Activity */}
-                <Card className="animate-in slide-in-from-bottom-4 duration-1300">
+                <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Recent Activity</CardTitle>
                     <Button variant="ghost" size="sm">
@@ -582,6 +552,13 @@ export default function Dashboard() {
             )}
           </div>
         )}
+
+        {/* Character Modal */}
+        <CharacterModal 
+          character={selectedCharacter}
+          isOpen={isCharacterModalOpen}
+          onClose={() => setIsCharacterModalOpen(false)}
+        />
       </main>
     </div>
   );
