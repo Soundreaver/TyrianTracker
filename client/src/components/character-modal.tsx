@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/loading-skeleton";
-import { Shield, Sword, Heart, Zap, Clock, Calendar } from "lucide-react";
+import { Shield, Sword, Heart, Zap, Clock, Calendar, Package, Search, Eye, Crown, Moon, Plus } from "lucide-react";
 import type { Character } from "@shared/schema";
 
 interface CharacterModalProps {
@@ -32,20 +32,36 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
     return specs[profession] || "⚔️";
   };
 
-  const getEliteSpecBackground = (profession: string) => {
-    // CSS background images for elite specializations
-    const backgrounds: Record<string, string> = {
-      Guardian: "bg-gradient-to-br from-blue-600/80 to-blue-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"guardian\" x=\"0\" y=\"0\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"%3E%3Ccircle cx=\"10\" cy=\"10\" r=\"3\" fill=\"%23ffffff\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23guardian)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Warrior: "bg-gradient-to-br from-red-600/80 to-red-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"warrior\" x=\"0\" y=\"0\" width=\"15\" height=\"15\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M7.5 0L15 7.5L7.5 15L0 7.5Z\" fill=\"%23ffffff\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23warrior)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Engineer: "bg-gradient-to-br from-orange-600/80 to-orange-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"engineer\" x=\"0\" y=\"0\" width=\"25\" height=\"25\" patternUnits=\"userSpaceOnUse\"%3E%3Crect x=\"5\" y=\"5\" width=\"15\" height=\"15\" fill=\"%23ffffff\" opacity=\"0.05\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23engineer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Ranger: "bg-gradient-to-br from-green-600/80 to-green-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"ranger\" x=\"0\" y=\"0\" width=\"30\" height=\"30\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M15 5L25 15L15 25L5 15Z\" fill=\"%23ffffff\" opacity=\"0.08\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23ranger)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Thief: "bg-gradient-to-br from-purple-600/80 to-purple-900/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"specter\" x=\"0\" y=\"0\" width=\"40\" height=\"40\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M20 0L40 20L20 40L0 20Z\" fill=\"%23ffffff\" opacity=\"0.06\"/%3E%3Cpath d=\"M10 10L30 10L30 30L10 30Z\" fill=\"%23ffffff\" opacity=\"0.03\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23specter)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Elementalist: "bg-gradient-to-br from-cyan-600/80 to-cyan-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"elementalist\" x=\"0\" y=\"0\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"%3E%3Ccircle cx=\"10\" cy=\"10\" r=\"8\" fill=\"none\" stroke=\"%23ffffff\" stroke-width=\"1\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23elementalist)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Mesmer: "bg-gradient-to-br from-pink-600/80 to-pink-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"mesmer\" x=\"0\" y=\"0\" width=\"35\" height=\"35\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M17.5 5L30 17.5L17.5 30L5 17.5Z\" fill=\"%23ffffff\" opacity=\"0.07\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23mesmer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Necromancer: "bg-gradient-to-br from-gray-600/80 to-gray-900/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"necromancer\" x=\"0\" y=\"0\" width=\"25\" height=\"25\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M12.5 2.5L22.5 12.5L12.5 22.5L2.5 12.5Z\" fill=\"%23ffffff\" opacity=\"0.05\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23necromancer)\"/%3E%3C/svg%3E')] bg-blend-overlay",
-      Revenant: "bg-gradient-to-br from-amber-600/80 to-amber-800/80 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"revenant\" x=\"0\" y=\"0\" width=\"30\" height=\"30\" patternUnits=\"userSpaceOnUse\"%3E%3Cpath d=\"M15 0L30 15L15 30L0 15Z\" fill=\"%23ffffff\" opacity=\"0.08\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23revenant)\"/%3E%3C/svg%3E')] bg-blend-overlay",
+  const getProfessionColor = (profession: string) => {
+    // Official GW2 profession colors matching the game UI
+    const colors: Record<string, string> = {
+      Guardian: "from-blue-400 to-blue-600",
+      Warrior: "from-red-500 to-red-700",
+      Engineer: "from-orange-400 to-orange-600",
+      Ranger: "from-green-500 to-green-700",
+      Thief: "from-purple-500 to-purple-700",
+      Elementalist: "from-cyan-400 to-cyan-600",
+      Mesmer: "from-pink-500 to-pink-700",
+      Necromancer: "from-gray-500 to-gray-700",
+      Revenant: "from-amber-500 to-amber-700",
     };
-    return backgrounds[profession] || "bg-gradient-to-br from-gray-600/80 to-gray-800/80";
+    return colors[profession] || "from-gray-500 to-gray-700";
+  };
+
+  const getProfessionIcon = (profession: string) => {
+    // Professional Lucide icons that match GW2 profession themes
+    const icons: Record<string, any> = {
+      Guardian: Shield,
+      Warrior: Sword,
+      Engineer: Package,
+      Ranger: Search,
+      Thief: Eye,
+      Elementalist: Zap,
+      Mesmer: Crown,
+      Necromancer: Moon,
+      Revenant: Plus,
+    };
+    return icons[profession] || Sword;
   };
 
   return (
@@ -53,9 +69,12 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center space-x-4">
-            <div className={`w-16 h-16 ${getEliteSpecBackground(character.profession || "")} rounded-lg flex items-center justify-center text-2xl relative overflow-hidden`}>
+            <div className={`w-16 h-16 bg-gradient-to-br ${getProfessionColor(character.profession || "")} rounded-lg flex items-center justify-center relative overflow-hidden shadow-lg`}>
               <div className="absolute inset-0 bg-black/30"></div>
-              <span className="relative text-white drop-shadow-lg">{getEliteSpecIcon(character.profession || "")}</span>
+              {(() => {
+                const IconComponent = getProfessionIcon(character.profession || "");
+                return <IconComponent className="h-8 w-8 text-white relative z-10 drop-shadow-md" />;
+              })()}
             </div>
             <div>
               <DialogTitle className="text-2xl">{character.name}</DialogTitle>
