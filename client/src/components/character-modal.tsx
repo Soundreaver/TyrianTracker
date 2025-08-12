@@ -5,7 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/loading-skeleton";
 import { Shield, Sword, Heart, Zap, Clock, Calendar, Package, Search, Eye, Crown, Moon, Plus } from "lucide-react";
-import { GW2ItemIcon } from "@/components/gw2-item-icon";
+import { ItemTooltip } from "@/components/item-tooltip";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import type { Character } from "@shared/schema";
 
 interface CharacterModalProps {
@@ -15,23 +17,18 @@ interface CharacterModalProps {
 }
 
 export function CharacterModal({ character, isOpen, onClose }: CharacterModalProps) {
-  if (!character) return null;
+  const { data: charDetails, isLoading } = useQuery({
+    queryKey: ["character", character?.name],
+    queryFn: async () => {
+      if (!character) return null;
+      const response = await apiRequest("GET", `/api/characters/${character.name}`);
+      return response.json();
+    },
+    enabled: isOpen && !!character,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
-  const getEliteSpecIcon = (profession: string) => {
-    // Elite specialization icons - in a real app, these would be actual images
-    const specs: Record<string, string> = {
-      Guardian: "🛡️",
-      Warrior: "⚔️",
-      Engineer: "🔧",
-      Ranger: "🏹",
-      Thief: "🗡️",
-      Elementalist: "⚡",
-      Mesmer: "🔮",
-      Necromancer: "💀",
-      Revenant: "👻",
-    };
-    return specs[profession] || "⚔️";
-  };
+  if (!character) return null;
 
   const getProfessionColor = (profession: string) => {
     // Official GW2 profession colors matching the game UI
@@ -179,35 +176,14 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-4 gap-4 mb-6">
-                  {/* Equipment slots with actual names */}
-                  {[
-                    { name: "Helmet", slot: "Helm" },
-                    { name: "Shoulders", slot: "Shoulders" },
-                    { name: "Coat", slot: "Coat" },
-                    { name: "Gloves", slot: "Gloves" },
-                    { name: "Leggings", slot: "Leggings" },
-                    { name: "Boots", slot: "Boots" },
-                    { name: "Main Hand", slot: "WeaponA1" },
-                    { name: "Off Hand", slot: "WeaponA2" },
-                    { name: "Aquatic", slot: "WeaponAquaticA" },
-                    { name: "Alt Main", slot: "WeaponB1" },
-                    { name: "Alt Off", slot: "WeaponB2" },
-                    { name: "Alt Aquatic", slot: "WeaponAquaticB" },
-                    { name: "Back Item", slot: "Backpack" },
-                    { name: "Accessory 1", slot: "Accessory1" },
-                    { name: "Accessory 2", slot: "Accessory2" },
-                    { name: "Ring 1", slot: "Ring1" },
-                    { name: "Ring 2", slot: "Ring2" },
-                    { name: "Amulet", slot: "Amulet" },
-                  ].map((item, index) => (
-                    <div key={index} className="flex flex-col items-center space-y-2">
-                      <div className="aspect-square w-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center relative bg-gradient-to-br from-amber-500/20 to-amber-600/20 hover:border-amber-500 transition-colors">
-                        <Shield className="h-6 w-6 text-amber-600" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg"></div>
-                      </div>
-                      <span className="text-xs text-center text-muted-foreground">{item.name}</span>
-                    </div>
-                  ))}
+                  {isLoading
+                    ? Array.from({ length: 18 }).map((_, i) => <Skeleton key={i} className="w-16 h-16" />)
+                    : charDetails?.equipment.map((item: any) => (
+                        <div key={item.id} className="flex flex-col items-center space-y-2">
+                          <ItemTooltip itemId={item.id} size="lg" />
+                          <span className="text-xs text-center text-muted-foreground">{item.slot}</span>
+                        </div>
+                      ))}
                 </div>
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground">
@@ -240,29 +216,17 @@ export function CharacterModal({ character, isOpen, onClose }: CharacterModalPro
                         </Badge>
                       </div>
                       <div className="grid grid-cols-10 gap-2">
-                        {Array.from({ length: bagIndex === 0 ? 4 : 20 }).map((_, slotIndex) => {
-                          // Sample item IDs for demonstration - would come from API
-                          const sampleItems = [12134, 12138, 12142, 12146, 12159, 12163];
-                          const hasItem = Math.random() > 0.6;
-                          const itemId = hasItem ? sampleItems[slotIndex % sampleItems.length] : null;
-                          
-                          return (
-                            <div 
-                              key={slotIndex} 
-                              className="aspect-square border border-muted rounded flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 hover:border-gw2-gold transition-colors cursor-pointer relative"
-                            >
-                              {itemId && (
-                                <GW2ItemIcon
-                                  itemId={itemId}
-                                  iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${itemId}.png`}
-                                  count={Math.floor(Math.random() * 20) + 1}
-                                  rarity={["Fine", "Masterwork", "Rare"][Math.floor(Math.random() * 3)]}
-                                  size="sm"
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
+                        {isLoading
+                          ? Array.from({ length: 20 }).map((_, i) => <Skeleton key={i} className="w-12 h-12" />)
+                          : charDetails?.inventory[bagIndex]?.slots.map((item: any, slotIndex: number) => (
+                              <div key={slotIndex} className="aspect-square">
+                                {item ? (
+                                  <ItemTooltip itemId={item.id} count={item.count} size="md" />
+                                ) : (
+                                  <div className="w-full h-full bg-muted rounded border-2 border-border" />
+                                )}
+                              </div>
+                            ))}
                       </div>
                     </div>
                   ))}

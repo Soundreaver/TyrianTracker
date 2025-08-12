@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Package, Gem, Hammer, Sparkles } from "lucide-react";
-import { GW2ItemIcon } from "@/components/gw2-item-icon";
+import { ItemTooltip } from "@/components/item-tooltip";
 import { useState } from "react";
 import type { Material } from "@shared/schema";
 
@@ -25,47 +24,6 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
     return icons[category] || <Package className="h-4 w-4" />;
   };
 
-  const getMaterialName = (itemId: number) => {
-    // In a real app, this would lookup item names from the GW2 API
-    const itemNames: Record<number, string> = {
-      19699: "Bloodstone Dust",
-      19746: "Empyreal Fragments", 
-      19750: "Dragonite Ore",
-      24289: "Pile of Auric Dust",
-      24290: "Ley Line Crystal",
-      24295: "Chak Egg",
-      // Add more as needed
-    };
-    return itemNames[itemId] || `Item ${itemId}`;
-  };
-
-  const getMaterialRarity = (itemId: number) => {
-    // Mock rarity data - in real app would come from API
-    const rarities: Record<number, string> = {
-      19699: "Ascended",
-      19746: "Ascended",
-      19750: "Ascended",
-      24289: "Exotic",
-      24290: "Exotic", 
-      24295: "Rare",
-    };
-    return rarities[itemId] || "Basic";
-  };
-
-  const getRarityColor = (rarity: string) => {
-    const colors: Record<string, string> = {
-      "Junk": "text-gray-400",
-      "Basic": "text-white",
-      "Fine": "text-blue-400", 
-      "Masterwork": "text-green-400",
-      "Rare": "text-yellow-400",
-      "Exotic": "text-orange-400",
-      "Ascended": "text-pink-400",
-      "Legendary": "text-purple-400",
-    };
-    return colors[rarity] || "text-white";
-  };
-
   const groupedMaterials = materials.reduce((acc, material) => {
     const category = material.category || 0;
     if (!acc[category]) {
@@ -75,15 +33,9 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
     return acc;
   }, {} as Record<number, Material[]>);
 
-  const filteredMaterials = Object.entries(groupedMaterials).reduce((acc, [category, mats]) => {
-    const filtered = mats.filter(material => 
-      getMaterialName(material.itemId).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    if (filtered.length > 0) {
-      acc[parseInt(category)] = filtered;
-    }
-    return acc;
-  }, {} as Record<number, Material[]>);
+  // Note: The search functionality will be limited without item names.
+  // A full implementation would require fetching all item details.
+  const filteredMaterials = Object.entries(groupedMaterials);
 
   return (
     <div className="space-y-6">
@@ -95,12 +47,13 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
+          disabled // Disabled until item names are available for searching
         />
       </div>
 
       {/* Materials Grid */}
       <div className="space-y-6">
-        {Object.entries(filteredMaterials).map(([category, mats]) => (
+        {filteredMaterials.map(([category, mats]) => (
           <Card key={category}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -112,34 +65,13 @@ export function MaterialsTab({ materials }: MaterialsTabProps) {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {mats.map((material) => (
-                  <Tooltip key={material.id}>
-                    <TooltipTrigger>
-                      <GW2ItemIcon
-                        itemId={material.itemId}
-                        iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${material.itemId}.png`}
-                        count={material.count}
-                        rarity={getMaterialRarity(material.itemId)}
-                        size="lg"
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-xs">
-                      <div className="space-y-2">
-                        <div className={`font-semibold ${getRarityColor(getMaterialRarity(material.itemId))}`}>
-                          {getMaterialName(material.itemId)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Count: {material.count.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Rarity: {getMaterialRarity(material.itemId)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Category: {material.category}
-                        </div>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
+                  <ItemTooltip
+                    key={material.id}
+                    itemId={material.itemId}
+                    count={material.count}
+                    size="lg"
+                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                  />
                 ))}
               </div>
             </CardContent>

@@ -24,6 +24,8 @@ export const accounts = pgTable("accounts", {
   dailyAp: integer("daily_ap"),
   monthlyAp: integer("monthly_ap"),
   wvwRank: integer("wvw_rank"),
+  pvpRank: integer("pvp_rank"),
+  achievementPoints: integer("achievement_points"),
   apiKeyId: varchar("api_key_id").references(() => apiKeys.id),
 });
 

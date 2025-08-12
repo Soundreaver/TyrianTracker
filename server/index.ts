@@ -60,11 +60,9 @@ app.use((req, res, next) => {
   // Default to 3001 for Render deployment compatibility
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || '3001', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+  
+  server.listen(port, host, () => {
+    log(`serving on ${host}:${port}`);
   });
 })();

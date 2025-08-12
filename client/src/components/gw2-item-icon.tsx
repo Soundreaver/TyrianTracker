@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Package, ShieldAlert } from "lucide-react";
 
 interface GW2ItemIconProps {
   itemId?: number;
@@ -27,19 +29,52 @@ const SIZE_CLASSES = {
   lg: "w-16 h-16",
 };
 
-export function GW2ItemIcon({ 
-  itemId, 
-  iconUrl, 
-  count, 
-  size = "md", 
-  rarity = "Basic",
-  className = "" 
+export function GW2ItemIcon({
+  itemId,
+  iconUrl: initialIconUrl,
+  count,
+  size = "md",
+  rarity: initialRarity = "Basic",
+  className = "",
 }: GW2ItemIconProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  const {
+    data: itemData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["item", itemId],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/items/${itemId}`);
+      return response.json();
+    },
+    enabled: !!itemId && !initialIconUrl, // Only fetch if itemId is provided and no initial iconUrl
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+  });
+
+  const iconUrl = initialIconUrl || itemData?.icon;
+  const rarity = initialRarity || itemData?.rarity || "Basic";
+
   const rarityClass = RARITY_COLORS[rarity as keyof typeof RARITY_COLORS] || RARITY_COLORS["Basic"];
   const sizeClass = SIZE_CLASSES[size];
+
+  if (isLoading) {
+    return (
+      <div className={`${sizeClass} relative rounded border-2 border-border bg-muted animate-pulse ${className}`} />
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className={`${sizeClass} relative rounded border-2 border-destructive bg-destructive/20 ${className}`}>
+        <div className="w-full h-full flex items-center justify-center">
+          <ShieldAlert className="h-1/2 w-1/2 text-destructive" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`${sizeClass} relative rounded border-2 ${rarityClass} ${className}`}>
@@ -47,12 +82,13 @@ export function GW2ItemIcon({
         <>
           <img
             src={iconUrl}
-            alt={`Item ${itemId}`}
-            className={`w-full h-full object-cover rounded transition-opacity ${
+            alt={`Item ${itemId || "icon"}`}
+            className={`w-full h-full object-cover rounded transition-opacity duration-300 ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
+            loading="lazy"
           />
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -61,14 +97,14 @@ export function GW2ItemIcon({
           )}
         </>
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-400/30 to-amber-600/30">
-          <Package className="h-1/2 w-1/2 text-amber-600" />
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
+          <Package className="h-1/2 w-1/2 text-muted-foreground" />
         </div>
       )}
-      
+
       {count && count > 1 && (
-        <span className="absolute bottom-0 right-0 bg-black/80 text-white text-xs px-1 rounded text-[10px] font-bold border border-current">
-          {count > 9999 ? `${Math.floor(count/1000)}k` : count}
+        <span className="absolute bottom-0 right-0 bg-black/80 text-white text-xs px-1 rounded-sm font-bold border border-current">
+          {count > 9999 ? `${Math.floor(count / 1000)}k` : count}
         </span>
       )}
     </div>

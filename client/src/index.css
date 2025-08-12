@@ -66,13 +66,38 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border-0 bg-card text-card-foreground shadow-lg transition-all duration-300 ease-in-out;
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+  .card:hover {
+    @apply transform -translate-y-2;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .dark .card {
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.3), 
+      0 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .dark .card:hover {
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
   }
 }
 

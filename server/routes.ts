@@ -21,6 +21,8 @@ interface GW2Account {
   daily_ap: number;
   monthly_ap: number;
   wvw_rank: number;
+  pvp_rank: number;
+  achievement_points: number;
 }
 
 interface GW2Character {
@@ -35,15 +37,31 @@ interface GW2Character {
   deaths: number;
 }
 
-async function fetchGW2API(endpoint: string, apiKey: string) {
-  const response = await fetch(`${GW2_API_BASE}${endpoint}`, {
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-    },
-  });
+async function fetchGW2API(endpoint: string, apiKey?: string): Promise<any> {
+  const headers: Record<string, string> = {};
+  
+  // Only add Authorization header if API key is provided and not empty
+  if (apiKey && apiKey.trim()) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  const response = await fetch(`${GW2_API_BASE}${endpoint}`, { headers });
 
   if (!response.ok) {
-    throw new Error(`GW2 API Error: ${response.status} ${response.statusText}`);
+    let errorMessage = `GW2 API Error: ${response.status} ${response.statusText}`;
+    
+    // Try to get more detailed error message from response
+    try {
+      const errorData = await response.json() as any;
+      if (errorData?.text) {
+        errorMessage += ` - ${errorData.text}`;
+      }
+    } catch {
+      // Ignore JSON parsing errors, use basic error message
+    }
+    
+    console.error(`API Error for ${endpoint}:`, errorMessage);
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -85,8 +103,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
           permissions: ["account"], // Would normally fetch from /v2/tokeninfo
         });
 
-        // Create or update account
-        const account = await storage.createOrUpdateAccount(accountData, apiKey.id);
+        // Calculate total achievement points
+        let totalAchievementPoints = 0;
+        try {
+          console.log('Fetching achievement progress data...');
+          const accountAchievements = await fetchGW2API("/account/achievements", key) as any[];
+          
+          // Get unique achievement IDs from account progress
+          const achievementIds = [...new Set(accountAchievements.map((progress: any) => progress.id))];
+          console.log(`Found ${achievementIds.length} achievements with progress`);
+          
+          if (achievementIds.length > 0) {
+            // Fetch achievement details in batches (GW2 API limit is 200 per request)
+            const batchSize = 200;
+            const achievementPoints = new Map();
+            
+            for (let i = 0; i < achievementIds.length; i += batchSize) {
+              const batch = achievementIds.slice(i, i + batchSize);
+              const batchDetails = await fetchGW2API(`/achievements?ids=${batch.join(',')}`, key) as any[];
+              
+              batchDetails.forEach((ach: any) => {
+                achievementPoints.set(ach.id, ach.points || 0);
+              });
+            }
+            
+            console.log(`Fetched details for ${achievementPoints.size} achievements`);
+            
+            // Debug: Check some achievement data
+            let completedCount = 0;
+            let pointGivingCount = 0;
+            let sampleCompleted: any[] = [];
+            let samplePointGiving: any[] = [];
+            let sampleIncomplete: any[] = [];
+            let pointDistribution = { zero: 0, low: 0, medium: 0, high: 0 };
+            
+            // Sum up points from completed achievements
+            accountAchievements.forEach((progress: any) => {
+              if (progress.done) {
+                completedCount++;
+                const points = achievementPoints.get(progress.id) || 0;
+                
+                // Categorize points for statistics
+                if (points === 0) pointDistribution.zero++;
+                else if (points <= 5) pointDistribution.low++;
+                else if (points <= 15) pointDistribution.medium++;
+                else pointDistribution.high++;
+                
+                // Sample first few completed (regardless of points)
+                if (sampleCompleted.length < 5) {
+                  sampleCompleted.push({ id: progress.id, points, repeated: progress.repeated || 0 });
+                }
+                
+                // Sample achievements that actually give points
+                if (points > 0) {
+                  pointGivingCount++;
+                  if (samplePointGiving.length < 5) {
+                    samplePointGiving.push({ id: progress.id, points, repeated: progress.repeated || 0 });
+                  }
+                }
+                
+                totalAchievementPoints += points;
+                // Handle repeatable achievements
+                if (progress.repeated && progress.repeated > 0) {
+                  totalAchievementPoints += points * progress.repeated;
+                }
+              } else if (sampleIncomplete.length < 3) {
+                sampleIncomplete.push({ 
+                  id: progress.id, 
+                  done: progress.done, 
+                  current: progress.current, 
+                  max: progress.max 
+                });
+              }
+            });
+            
+            console.log(`Found ${completedCount} completed achievements out of ${accountAchievements.length} total`);
+            console.log(`Point distribution - 0pts: ${pointDistribution.zero}, 1-5pts: ${pointDistribution.low}, 6-15pts: ${pointDistribution.medium}, 16+pts: ${pointDistribution.high}`);
+            console.log(`Found ${pointGivingCount} achievements that give points`);
+            console.log(`Sample completed (any points):`, sampleCompleted);
+            console.log(`Sample point-giving achievements:`, samplePointGiving);
+            console.log(`Calculated total achievement points: ${totalAchievementPoints}`);
+          }
+        } catch (error) {
+          console.log("Achievement points calculation failed:", error);
+          totalAchievementPoints = 0;
+        }
+
+        // Create or update account with calculated achievement points
+        const accountWithAchievements = {
+          ...accountData,
+          achievement_points: totalAchievementPoints
+        };
+        const account = await storage.createOrUpdateAccount(accountWithAchievements, apiKey.id);
 
         // Fetch and save characters with inventory
         const charactersData: GW2Character[] = await fetchGW2API("/characters?page=0", key);
@@ -103,22 +211,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           accountId: account.id,
         }));
         await storage.saveCharacters(characters, account.id);
-
-        // Fetch character inventories and equipment
-        for (const char of charactersData.slice(0, 5)) { // Limit to first 5 chars to avoid rate limits
-          try {
-            // Get character equipment
-            const equipment = await fetchGW2API(`/characters/${encodeURIComponent(char.name)}/equipment`, key);
-            
-            // Get character inventory (bags)
-            const inventory = await fetchGW2API(`/characters/${encodeURIComponent(char.name)}/inventory`, key);
-            
-            // Store equipment and inventory data (would need to extend schema)
-            console.log(`Fetched equipment and inventory for ${char.name}`);
-          } catch (error) {
-            console.log(`Failed to fetch inventory for ${char.name}:`, error);
-          }
-        }
 
         // Fetch wallet
         try {
@@ -266,13 +358,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get profession data with icons
+  // Bulk fetch item details
+  app.post("/api/items-bulk", async (req, res) => {
+    try {
+      const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
+      const apiKey = req.headers.authorization?.replace('Bearer ', '');
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API key required" });
+      }
+
+      if (ids.length === 0) {
+        return res.json([]);
+      }
+
+      // GW2 API has a limit of 200 IDs per request
+      const items = await fetchGW2API(`/items?ids=${ids.join(',')}`, apiKey);
+      res.json(items);
+    } catch (error: any) {
+      console.error("Bulk item fetch error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Get profession data with icons (public endpoint - no API key needed)
   app.get("/api/professions", async (req, res) => {
     try {
-      const professionsData = await fetchGW2API("/professions?ids=all", "");
+      const professionsData = await fetchGW2API("/professions?ids=all");
       res.json(professionsData);
     } catch (error: any) {
       console.error("Professions fetch error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Get all currencies with icons (public endpoint - no API key needed)
+  app.get("/api/currencies", async (req, res) => {
+    try {
+      const currenciesData = await fetchGW2API("/currencies?ids=all");
+      res.json(currenciesData);
+    } catch (error: any) {
+      console.error("Currencies fetch error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Get character details with equipment and inventory
+  app.get("/api/characters/:name", async (req, res) => {
+    try {
+      const { name } = req.params;
+      const apiKey = req.headers.authorization?.replace('Bearer ', '');
+
+      if (!apiKey) {
+        return res.status(401).json({ error: "API key required" });
+      }
+
+      const [equipment, inventory] = await Promise.all([
+        fetchGW2API(`/characters/${encodeURIComponent(name)}/equipment`, apiKey),
+        fetchGW2API(`/characters/${encodeURIComponent(name)}/inventory`, apiKey),
+      ]);
+
+      res.json({ equipment, inventory });
+    } catch (error: any) {
+      console.error(`Character fetch error for ${req.params.name}:`, error);
       res.status(400).json({ error: error.message });
     }
   });

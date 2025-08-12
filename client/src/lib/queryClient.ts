@@ -13,9 +13,16 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  
+  const apiKey = localStorage.getItem("gw2-api-key");
+  if (apiKey) {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+  }
+
   const res = await fetch(`${baseUrl}${url}`, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });

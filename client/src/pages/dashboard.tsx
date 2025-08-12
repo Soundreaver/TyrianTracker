@@ -14,6 +14,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { CharacterModal } from "@/components/character-modal";
 import { MaterialsTab } from "@/components/materials-tab";
 import { GW2ItemIcon } from "@/components/gw2-item-icon";
+import { ItemTooltip } from "@/components/item-tooltip";
+import { CurrencyIcon } from "@/components/currency-icon";
 import { 
   Coins, 
   Gem, 
@@ -39,12 +41,24 @@ import type { AccountWithDetails, Character } from "@shared/schema";
 export default function Dashboard() {
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
-  const [validatedKey, setValidatedKey] = useState<string | null>(null);
+  const [validatedKey, setValidatedKey] = useState<string | null>(() => {
+    return localStorage.getItem("gw2-api-key");
+  });
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isCharacterModalOpen, setIsCharacterModalOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch professions data
+  const { data: professions = [] } = useQuery<any[]>({
+    queryKey: ["/api/professions"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/professions");
+      return response.json();
+    },
+    staleTime: Infinity, // Professions data is static
+  });
 
   // Validate API key mutation
   const validateKeyMutation = useMutation({
@@ -53,7 +67,11 @@ export default function Dashboard() {
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data.success && data.account) {
+        // Manually set the query data for the account from the mutation response
+        queryClient.setQueryData(["/api/account", apiKey], data.account);
+        
+        localStorage.setItem("gw2-api-key", apiKey);
         setValidatedKey(apiKey);
         toast({
           title: "API Key Validated",
@@ -115,6 +133,12 @@ export default function Dashboard() {
     return gemsCurrency ? gemsCurrency.value.toLocaleString() : "0";
   };
 
+  const getKarmaValue = () => {
+    if (!account?.wallet) return "0";
+    const karmaCurrency = account.wallet.find(w => w.currencyId === 2);
+    return karmaCurrency ? karmaCurrency.value.toLocaleString() : "0";
+  };
+
   const getProfessionColor = (profession: string) => {
     // Official GW2 profession colors matching the game UI
     const colors: Record<string, string> = {
@@ -131,20 +155,10 @@ export default function Dashboard() {
     return colors[profession] || "from-gray-500 to-gray-700";
   };
 
-  const getProfessionIcon = (profession: string) => {
-    // Official GW2 profession icon URLs from the render service
-    const iconUrls: Record<string, string> = {
-      Guardian: "https://render.guildwars2.com/file/943538394A94A491C8632FBEF6203C2013443555/102478.png",
-      Warrior: "https://render.guildwars2.com/file/4926CE43F614A7D9A83AB9D6D25DF57B61BF4DE5/102451.png", 
-      Engineer: "https://render.guildwars2.com/file/502050C64A7EC7E3C9A4FB0B1F0D9E9F2CF2D73B/102456.png",
-      Ranger: "https://render.guildwars2.com/file/298F3F67EA2D6BFAD3D516F6F5E09EFBA8B66E87/102473.png",
-      Thief: "https://render.guildwars2.com/file/41CF590C6E5DC8F10EDA0D4C11309D1DD25E55E8/102447.png",
-      Elementalist: "https://render.guildwars2.com/file/A7B0C1F982026C7648C32FA50CA8CB4B1EDC64F3/102461.png",
-      Mesmer: "https://render.guildwars2.com/file/E54E7E5C2987B5BA17A5F5AACBB421DFE3F57AC0/102465.png",
-      Necromancer: "https://render.guildwars2.com/file/1F4BAB7CB6299113FE6A6B462C8273B84F61FA67/102469.png",
-      Revenant: "https://render.guildwars2.com/file/0F2FC4F020F7EE9F6E6B80B9CD7C2068FA2CFBF7/103822.png"
-    };
-    return iconUrls[profession];
+  const getProfessionIcon = (professionName: string) => {
+    if (professions.length === 0) return null;
+    const professionData = professions.find(p => p.name === professionName);
+    return professionData?.icon;
   };
 
   const handleCharacterClick = (character: Character) => {
@@ -153,7 +167,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gw2-light dark:bg-gw2-dark transition-colors duration-300">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -326,24 +340,28 @@ export default function Dashboard() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="p-4 bg-gradient-to-br from-gw2-gold/10 to-yellow-100/50 dark:from-gw2-gold/20 dark:to-yellow-900/20 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <Coins className="text-gw2-gold h-6 w-6" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Total Gold</p>
-                              <p className="text-2xl font-bold">{getGoldValue()}</p>
-                            </div>
+                      <div className="grid sm:grid-cols-3 gap-4">
+                        <div className="flex items-center space-x-3">
+                          <CurrencyIcon currencyId={1} className="w-10 h-10" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Total Gold</p>
+                            <p className="text-2xl font-bold">{getGoldValue()}</p>
                           </div>
                         </div>
-                        
-                        <div className="p-4 bg-gradient-to-br from-gw2-purple/10 to-purple-100/50 dark:from-gw2-purple/20 dark:to-purple-900/20 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <Gem className="text-gw2-purple h-6 w-6" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Gems</p>
-                              <p className="text-2xl font-bold">{getGemsValue()}</p>
-                            </div>
+
+                        <div className="flex items-center space-x-3">
+                          <CurrencyIcon currencyId={4} className="w-10 h-10" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Gems</p>
+                            <p className="text-2xl font-bold">{getGemsValue()}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <CurrencyIcon currencyId={2} className="w-10 h-10" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Karma</p>
+                            <p className="text-2xl font-bold">{getKarmaValue()}</p>
                           </div>
                         </div>
                       </div>
@@ -351,11 +369,15 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                           <span className="text-sm font-medium">Achievement Points</span>
-                          <span className="font-bold">{(account.dailyAp || 0) + (account.monthlyAp || 0)}</span>
+                          <span className="font-bold">{account.achievementPoints?.toLocaleString() || 0}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                           <span className="text-sm font-medium">World vs World Rank</span>
                           <span className="font-bold">{account.wvwRank || "Unranked"}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                          <span className="text-sm font-medium">PvP Rank</span>
+                          <span className="font-bold">{account.pvpRank || "Unranked"}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                           <span className="text-sm font-medium">Fractal Level</span>
@@ -385,27 +407,24 @@ export default function Dashboard() {
                           <span className="text-sm text-muted-foreground">Commander</span>
                           <span className="font-medium">{account.commander ? "Yes" : "No"}</span>
                         </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Characters</span>
+                          <span className="font-medium">{account.characters.length}</span>
+                        </div>
                       </CardContent>
                     </Card>
-                    
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Quick Stats</CardTitle>
+                        <CardTitle className="text-lg">Trading Post</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Fractal Progress</span>
-                            <span>{account.fractalLevel}%</span>
-                          </div>
-                          <Progress value={Math.min(account.fractalLevel || 0, 100)} className="h-2" />
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Delivery Box</span>
+                          <span className="font-medium">0 items</span>
                         </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Characters</span>
-                            <span>{account.characters.length}</span>
-                          </div>
-                          <Progress value={Math.min((account.characters.length / 9) * 100, 100)} className="h-2" />
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Transactions</span>
+                          <span className="font-medium">0/0</span>
                         </div>
                       </CardContent>
                     </Card>
@@ -431,7 +450,26 @@ export default function Dashboard() {
                               <div
                                 key={character.name}
                                 onClick={() => handleCharacterClick(character)}
-                                className="relative p-4 rounded-lg border hover:shadow-lg transition-all duration-200 cursor-pointer group overflow-hidden"
+                                className="relative p-4 rounded-lg border-0 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden bg-card"
+                                style={{
+                                  boxShadow: document.documentElement.classList.contains('dark') 
+                                    ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                                    : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (document.documentElement.classList.contains('dark')) {
+                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2)'
+                                  } else {
+                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (document.documentElement.classList.contains('dark')) {
+                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                                  } else {
+                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                                  }
+                                }}
                               >
                                 {/* Professional background */}
                                 <div className={`absolute inset-0 bg-gradient-to-br ${getProfessionColor(character.profession || "")} opacity-15`}></div>
@@ -495,21 +533,17 @@ export default function Dashboard() {
                             return (
                               <div
                                 key={index}
-                                className={`aspect-square rounded border-2 transition-colors cursor-pointer ${
-                                  item
-                                    ? "border-gw2-gold bg-gradient-to-br from-gw2-gold/20 to-yellow-600/20 hover:border-gw2-gold/80"
-                                    : "border-border bg-muted hover:border-muted-foreground"
-                                }`}
+                                className="aspect-square rounded transition-colors cursor-pointer"
                               >
-                                {item && (
+                                {item ? (
                                   <GW2ItemIcon
                                     itemId={item.itemId ?? undefined}
-                                    iconUrl={`https://render.guildwars2.com/file/PLACEHOLDER/${item.itemId ?? 0}.png`}
                                     count={item.count ?? undefined}
-                                    rarity="Fine"
                                     size="md"
                                     className="w-full h-full"
                                   />
+                                ) : (
+                                  <div className="w-full h-full bg-muted rounded border-2 border-border" />
                                 )}
                               </div>
                             );

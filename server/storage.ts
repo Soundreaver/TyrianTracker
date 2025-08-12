@@ -87,6 +87,8 @@ export class MemStorage implements IStorage {
   }
 
   async createOrUpdateAccount(accountData: any, apiKeyId: string): Promise<Account> {
+    console.log('Raw GW2 API account data:', JSON.stringify(accountData, null, 2));
+    
     const account: Account = {
       id: accountData.id,
       name: accountData.name,
@@ -98,8 +100,12 @@ export class MemStorage implements IStorage {
       dailyAp: accountData.daily_ap || 0,
       monthlyAp: accountData.monthly_ap || 0,
       wvwRank: accountData.wvw_rank || 0,
+      pvpRank: accountData.pvp_rank || 0,
+      achievementPoints: accountData.achievement_points || 0,
       apiKeyId,
     };
+    
+    console.log('Processed account data:', JSON.stringify(account, null, 2));
     
     this.accounts.set(apiKeyId, account);
     return account;
