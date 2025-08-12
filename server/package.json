@@ -37,7 +37,7 @@
     "@types/ws": "^8.5.13",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.30.4",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.25.8",
     "tsx": "^4.19.1",
     "typescript": "5.6.3"
   }
