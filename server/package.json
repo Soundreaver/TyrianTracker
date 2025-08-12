@@ -14,8 +14,10 @@
     "@neondatabase/serverless": "^0.10.4",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
+    "esbuild": "^0.25.8",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "memorystore": "^1.6.7",
@@ -35,9 +37,7 @@
     "@types/passport": "^1.0.16",
     "@types/passport-local": "^1.0.38",
     "@types/ws": "^8.5.13",
-    "cross-env": "^7.0.3",
     "drizzle-kit": "^0.30.4",
-    "esbuild": "^0.25.8",
     "tsx": "^4.19.1",
     "typescript": "5.6.3"
   }
